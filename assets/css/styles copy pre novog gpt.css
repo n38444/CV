@@ -1,0 +1,590 @@
+/* =========================================================
+   BC//2026 — Brutal B&W CSS (optimized)
+   - No blur/backdrop-filter
+   - Minimal continuous animations
+   - Transform-only motion where possible
+   - Fixed CTA + scroll background rail
+   ========================================================= */
+
+/* ---------- Base tokens ---------- */
+:root{
+  --bg: #000;
+  --fg: #fff;
+  --muted: rgba(255,255,255,0.70);
+  --muted2: rgba(255,255,255,0.45);
+  --line: rgba(255,255,255,0.22);
+
+  --shadowHard: #6e6e6e;
+
+  /* scanlines intensity */
+  --scanOpacity: 0.18;
+
+  /* glitch intensity */
+  --glitchOpacity: 0.55;
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  letter-spacing: 0.2px;
+  overflow-x: hidden;
+}
+
+a{ color: var(--fg); text-decoration: none; }
+a:hover{ opacity: 0.92; }
+
+.mono{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  letter-spacing: 0.9px;
+}
+
+.muted{ color: var(--muted); }
+.wrap{ width:min(1100px, 92vw); margin:0 auto; }
+.spacer{ height: 70px; } /* room for fixed navbar */
+
+/* ---------- Global: enforce brutal rectangles ---------- */
+.card, .t-item, .btn, .nav-links a, .brand,
+section, header, footer, article, main,
+canvas, video{
+  border-radius: 0 !important;
+}
+
+/* =========================================================
+   BACKGROUND STAGE (fixed) + rail for scroll images
+   ========================================================= */
+
+.bg-stage{
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Rail container (moves via JS with transform translateY) */
+.bg-rail{
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  will-change: transform; /* only element we animate */
+  z-index: 0;
+}
+
+.bg-rail-item{
+  height: 100vh;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  /* keep filters minimal for performance; grayscale is OK */
+  filter: grayscale(1) contrast(1.08) brightness(0.78);
+}
+
+/* Vignette layer (static) */
+.bg-vignette{
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(900px 500px at 50% 20%,
+      rgba(255,255,255,0.05),
+      rgba(0,0,0,0.78) 60%,
+      rgba(0,0,0,0.95) 100%);
+}
+
+/* Grain overlay (lightweight) */
+.bg-noise{
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Grain effect using thin line pattern + jitter */
+.grain::before{
+  content:"";
+  position:absolute;
+  inset:-60px;
+  pointer-events:none;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, rgba(0,0,0,0.02) 1px 2px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, rgba(0,0,0,0.02) 1px 2px);
+  mix-blend-mode: overlay;
+  opacity: 0.45;
+  animation: grainJitter 1.8s steps(2,end) infinite;
+}
+
+@keyframes grainJitter{
+  0%{ transform: translate(0,0); }
+  25%{ transform: translate(-2px, 1px); }
+  50%{ transform: translate(2px, -1px); }
+  75%{ transform: translate(-1px, -2px); }
+  100%{ transform: translate(1px, 2px); }
+}
+
+/* CV/Links dim background to 20% */
+.cv-bg-dim .bg-rail-item{ opacity: 0.20; }
+.cv-bg-dim .bg-vignette{
+  background:
+    radial-gradient(900px 500px at 50% 20%,
+      rgba(255,255,255,0.03),
+      rgba(0,0,0,0.86) 65%,
+      rgba(0,0,0,0.96) 100%);
+}
+
+/* =========================================================
+   TV Scanlines toggle (body.scanlines-active)
+   ========================================================= */
+
+body.scanlines-active::after{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 1;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0 2px,
+      rgba(255,255,255,var(--scanOpacity)) 2px 3px
+    );
+  mix-blend-mode: overlay;
+}
+
+/* Reduced motion safety */
+@media (prefers-reduced-motion: reduce){
+  .grain::before{ animation: none !important; }
+  .timeline::before{ animation: none !important; }
+  .t-item:hover::after{ animation: none !important; }
+}
+
+/* =========================================================
+   NAVBAR — brutal control panel
+   ========================================================= */
+
+.nav{
+  position: fixed;
+  top:0; left:0; right:0;
+  z-index: 1100;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding: 14px 20px;
+
+  background: #000;
+  border-bottom: 2px solid #fff;
+}
+
+.brand{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding: 10px 16px;
+  background: #000;
+  color: #fff;
+
+  border: 2px solid #fff;
+
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.nav-links{
+  display:flex;
+  gap: 14px;
+  align-items:center;
+}
+
+/* Link buttons same language as main CTA (smaller) */
+.nav-links a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding: 12px 22px;
+  background: #000;
+  color: #fff;
+
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+
+  border: 2px solid #fff;
+  border-radius: 0 !important;
+
+  box-shadow: 6px 6px 0 var(--shadowHard);
+
+  transition: transform 0.1s linear, box-shadow 0.1s linear, background 0.1s linear;
+  user-select: none;
+}
+
+.nav-links a:active{
+  transform: translate(6px, 6px);
+  box-shadow: 0 0 0 var(--shadowHard);
+}
+
+@media (hover: hover){
+  .nav-links a:hover{ background: #111; }
+}
+
+/* =========================================================
+   HOME: fixed center CTA + scroll spacer
+   ========================================================= */
+
+.center-cta{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1200;
+  text-align: center;
+  width: min(620px, 92vw);
+}
+
+#scrollSpacer{
+  /* JS sets height based on number of images */
+  height: 200vh;
+}
+
+/* =========================================================
+   MAIN CTA button — flat brutal plate
+   ========================================================= */
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding: 30px 58px;
+  border-radius: 0;
+
+  background: #000;
+  color: #fff;
+
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+
+  border: 2px solid #fff;
+
+  /* hard offset shadow (no blur) */
+  box-shadow: 10px 10px 0 var(--shadowHard);
+
+  cursor: pointer;
+  user-select: none;
+
+  transition: transform 0.12s linear, box-shadow 0.12s linear, background 0.12s linear;
+}
+
+.btn:active{
+  transform: translate(10px, 10px);
+  box-shadow: 0 0 0 var(--shadowHard);
+}
+
+@media (hover: hover){
+  .btn:hover{ background:#111; }
+}
+
+.btn .chip{ display:none; } /* keep it clean everywhere */
+
+/* Smaller brutal buttons on CV page (still plates) */
+.cv-bg-dim .btn{
+  padding: 18px 36px;
+  font-size: 14px;
+  letter-spacing: 3px;
+  box-shadow: 8px 8px 0 var(--shadowHard);
+}
+
+.cv-bg-dim .btn:active{
+  transform: translate(8px, 8px);
+  box-shadow: 0 0 0 var(--shadowHard);
+}
+
+/* =========================================================
+   SECTIONS / CARDS (used on CV page)
+   ========================================================= */
+
+.section{
+  padding: 70px 0;
+  border-top: 2px solid rgba(255,255,255,0.10);
+}
+
+.section h2{
+  margin: 0 0 16px;
+  font-size: clamp(20px, 2.2vw, 28px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 16px;
+}
+
+.card{
+  background: rgba(255,255,255,0.035);
+  border: 2px solid rgba(255,255,255,0.12);
+  padding: 16px;
+  box-shadow: 10px 10px 0 rgba(110,110,110,0.35);
+}
+
+.card strong{ color: #fff; }
+
+@media (max-width: 860px){
+  .grid{ grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   CV TIMELINE — oscilloscope trace + square markers + glitch
+   ========================================================= */
+
+.timeline{
+  position:relative;
+  margin-top: 10px;
+  padding-left: 18px;
+}
+
+/* Oscilloscope waveform line */
+.timeline::before{
+  content:"";
+  position:absolute;
+  left:6px; top:8px; bottom:8px;
+  width:2px;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='120' viewBox='0 0 24 120'%3E%3Cpath d='M12 0 C 18 10, 6 20, 12 30 C 18 40, 6 50, 12 60 C 18 70, 6 80, 12 90 C 18 100, 6 110, 12 120' fill='none' stroke='%23ffffff' stroke-opacity='0.75' stroke-width='2' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-size: 24px 120px;
+
+  opacity: 0.85;
+  filter: contrast(120%) brightness(105%);
+  animation: scopeSweep 2.8s linear infinite;
+  will-change: background-position;
+}
+
+@keyframes scopeSweep{
+  from{ background-position: 0 0; }
+  to{ background-position: 0 120px; }
+}
+
+/* On hover of the timeline area, add controlled instability */
+@media (hover: hover){
+  .timeline:hover::before{
+    animation:
+      scopeSweep 2.8s linear infinite,
+      scopeJitter 0.16s steps(2,end) infinite,
+      scopeSpike 2.4s steps(1,end) infinite;
+  }
+}
+
+@keyframes scopeJitter{
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-0.6px); }
+  50%  { transform: translateX(0.6px); }
+  75%  { transform: translateX(-0.3px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes scopeSpike{
+  0%, 88%, 100% { opacity: 0.85; }
+  89% { opacity: 1; }
+  90% { opacity: 0.75; }
+}
+
+/* Timeline items */
+.t-item{
+  position:relative;
+  padding: 12px 14px;
+  margin: 12px 0;
+
+  background: rgba(255,255,255,0.03);
+  border: 2px solid rgba(255,255,255,0.10);
+  box-shadow: 10px 10px 0 rgba(110,110,110,0.25);
+
+  overflow: hidden; /* contain glitch overlay */
+}
+
+/* Square markers (events) */
+.t-item::before{
+  content:"";
+  position:absolute;
+  left:-4px;
+  top: 18px;
+
+  width: 12px;
+  height: 12px;
+
+  background: #fff;
+  border: 2px solid #000;
+  box-shadow: 4px 4px 0 var(--shadowHard);
+
+  border-radius: 0 !important;
+}
+
+/* Misprint jitter (controlled) */
+.t-item:nth-child(odd)::before{ transform: translate(-1px, 0px); }
+.t-item:nth-child(even)::before{ transform: translate(0px, 1px); }
+.t-item:nth-child(3n)::before{ transform: translate(1px, -1px); }
+
+/* Marker invert on hover */
+@media (hover: hover){
+  .t-item:hover::before{
+    background: #000;
+    border-color: #fff;
+    box-shadow: 4px 4px 0 #9a9a9a;
+  }
+}
+
+/* Oscilloscope-style glitch smear on hover (visible but fast) */
+.t-item::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity: 0;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.10) 0 1px,
+      rgba(0,0,0,0.00) 1px 4px
+    ),
+    repeating-linear-gradient(
+      115deg,
+      rgba(255,255,255,0.07) 0 2px,
+      rgba(0,0,0,0.00) 2px 10px
+    );
+
+  mix-blend-mode: overlay;
+  transform: translateX(0);
+}
+
+@media (hover: hover){
+  .t-item:hover::after{
+    opacity: var(--glitchOpacity);
+    animation: scopeGlitch 0.22s steps(2,end) 1;
+  }
+}
+
+@keyframes scopeGlitch{
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-3px); }
+  50%  { transform: translateX(3px); }
+  75%  { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+.t-role{ font-weight: 900; letter-spacing: 1.2px; text-transform: uppercase; }
+.t-meta{ color: var(--muted); font-size: 13px; margin-top: 4px; }
+.t-bullets{ margin: 10px 0 0; padding-left: 18px; color: rgba(255,255,255,0.88); line-height:1.7; }
+.t-bullets li{ margin: 6px 0; }
+
+/* =========================================================
+   FOOTER — big video background (performance friendly)
+   ========================================================= */
+
+.footer{
+  position: relative;
+  min-height: 60vh;
+  overflow: hidden;
+  border-top: 2px solid rgba(255,255,255,0.12);
+}
+
+.footer-video{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit: cover;
+
+  /* avoid heavy filters; keep modest */
+  filter: grayscale(1) contrast(1.05) brightness(0.65);
+  transform: translateZ(0); /* GPU hint */
+}
+
+.footer-overlay{
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.80) 100%);
+}
+
+.footer-overlay.grain::before{
+  opacity: 0.50;
+}
+
+.footer-content{
+  position: relative;
+  z-index: 2;
+  width:min(1100px, 92vw);
+  margin: 0 auto;
+  padding: 34px 0;
+
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap: 18px;
+
+  min-height: 60vh;
+}
+
+.footer-right a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding: 10px 16px;
+
+  background:#000;
+  color:#fff;
+
+  border: 2px solid #fff;
+  box-shadow: 6px 6px 0 rgba(110,110,110,0.45);
+
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+
+  transition: transform 0.1s linear, box-shadow 0.1s linear;
+  user-select: none;
+}
+
+.footer-right a:active{
+  transform: translate(6px, 6px);
+  box-shadow: 0 0 0 rgba(110,110,110,0.45);
+}
+
+.sep{ opacity:0.55; margin: 0 10px; }
+
+/* Responsive footer stack */
+@media (max-width: 860px){
+  .footer-content{
+    flex-direction: column;
+    align-items:flex-start;
+  }
+}
+
+/* =========================================================
+   Mobile adjustments
+   ========================================================= */
+
+@media (max-width: 520px){
+  .nav{ padding: 12px 14px; }
+  .nav-links{ gap: 10px; }
+  .nav-links a{ padding: 10px 14px; font-size: 11px; letter-spacing: 2px; }
+  .brand{ padding: 9px 12px; }
+
+  .btn{ width: 100%; padding: 24px 20px; font-size: 16px; letter-spacing: 3px; }
+  .center-cta{ width: min(520px, 92vw); }
+}

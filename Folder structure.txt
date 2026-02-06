@@ -1,0 +1,31 @@
+gemini-start/
+│
+├── index.html                # HOME (fixed CTA + scroll background)
+├── cv.html                   # ONLINE CV (timeline + charts)
+├── links.html                # USEFUL LINKS (glitch background)
+│
+├── assets/
+│   ├── css/
+│   │   └── styles.css        # SINGLE global stylesheet (brutal B&W)
+│   │
+│   └── js/
+│       ├── common.js         # Navbar + footer + scanlines toggle
+│       ├── home.js           # HOME background scroll logic
+│       ├── cv.js             # CV background (static rail)
+│       └── links-bg.js       # Loads ulbackground via iframe
+│
+├── media/
+│   ├── File 1.jpeg           # Background image 1
+│   ├── File 2.jpeg           # Background image 2
+│   ├── File 3.jpeg           # Background image 3
+│   ├── File 4.jpeg           # Background image 4
+│   ├── File 5.jpeg           # Background image 5
+│   ├── File 6.jpeg           # Background image 6
+│   ├── footer.mp4            # Footer background video
+│   └── ulbackground.html     # Glitch background (used only on links.html)
+│
+├── cv/
+│   ├── BC25.pdf               # Original CV PDF (view)
+│   └── CV_2026.pdf            # Downloadable CV
+│
+└── README.md                  # (optional) deployment notes

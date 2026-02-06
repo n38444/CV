@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BC // Online CV</title>
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+</head>
+<body class="cv-bg-dim">
+
+  <div id="bgStage" class="bg-stage">
+    <div class="bg-vignette"></div>
+    <div class="bg-noise grain"></div>
+  </div>
+
+  <div id="navMount"></div>
+  <div class="spacer"></div>
+
+  <main class="wrap" style="padding: 24px 0 70px;">
+    <header class="card" style="position:relative;">
+      <div class="kicker mono">web cv // responsive // b&w</div>
+      <div id="cvName" class="h1 mono" style="font-size: clamp(28px, 4vw, 46px); margin: 10px 0 6px;"></div>
+      <div id="cvContact" class="mono muted" style="margin-bottom: 10px;"></div>
+      <div id="cvHeadline" style="line-height:1.8; color: rgba(255,255,255,0.88);"></div>
+
+      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="btn" style="padding:10px 12px; border-radius:12px;" href="/cv/BC25.pdf" target="_blank" rel="noopener">
+          <span class="chip mono">PDF</span> Quick Look 👀 
+        </a>
+        <a class="btn" style="padding:10px 12px; border-radius:12px;" href="/cv/CV_2026.pdf" download>
+          <span class="chip mono">DL</span> Download CV '26 💾
+        </a>
+      </div>
+    </header>
+
+    <section class="section" style="border-top:0; padding-top: 38px;">
+      <h2 class="mono">Experience Timeline</h2>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <section class="section">
+      <h2 class="mono">Skills // Charts</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="mono muted">Skill density</div>
+          <canvas id="chartSkills" height="140"></canvas>
+          <div class="muted mono" style="margin-top:10px;">
+            monochrome visualization for quick scanning
+          </div>
+        </div>
+        <div class="card">
+          <div class="mono muted">Focus profile</div>
+          <canvas id="chartFocus" height="140"></canvas>
+          <div class="muted mono" style="margin-top:10px;">
+            infra-heavy / ops-forward
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="mono">Education</h2>
+      <div id="eduList" class="grid" style="grid-template-columns: 1fr 1fr;"></div>
+    </section>
+
+    <section class="section">
+      <h2 class="mono">Courses</h2>
+      <div id="courseList" class="grid" style="grid-template-columns: 1fr 1fr;"></div>
+    </section>
+
+    <section class="section">
+      <h2 class="mono">Languages</h2>
+      <div id="langList" class="grid" style="grid-template-columns: 1fr 1fr;"></div>
+    </section>
+  </main>
+
+  <div id="footerMount"></div>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/assets/js/home.js"></script>
+  <script src="/assets/js/cv.js"></script>
+</body>
+</html>
